@@ -89,6 +89,22 @@ export class AuthService {
     }
 
     const payload: JwtPayload = await this.jwtService.verifyAsync(refreshToken);
+
+    if (payload) {
+      const user = await this.prismaService.user.findUnique({
+        where: {
+          id: payload.id,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return this.auth(res, user.id);
+    }
   }
 
   private auth(res: Response, id: string) {
