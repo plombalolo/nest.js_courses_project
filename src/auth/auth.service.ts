@@ -107,6 +107,18 @@ export class AuthService {
     }
   }
 
+  async validate(id: string) {
+    const user = await this.prismaService.user.findUnique({
+      where: {
+        id,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException('User not Found');
+    }
+
+    return user;
+  }
   private auth(res: Response, id: string) {
     const { accessToken, refreshToken } = this.generateTokens(id);
 
@@ -139,5 +151,11 @@ export class AuthService {
       secure: !isDev(this.configService),
       sameSite: isDev(this.configService) ? 'none' : 'lax',
     });
+  }
+
+  async logout(res: Response) {
+    this.setCookie(res, 'refreshToken', new Date(0));
+
+    return true;
   }
 }
